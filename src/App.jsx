@@ -1,35 +1,53 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import React, { useEffect, useState } from 'react';
+import axios from 'axios';
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [pokemonList, setPokemonList] = useState([]);
+  const [selectedPokemon, setSelectedPokemon] = useState(null);
+
+  useEffect(() => {
+    const buscarListaPokemon = async () => {
+        const response = await axios.get('https://pokeapi.co/api/v2/pokemon?limit=10');
+        if (response != null) {
+          setPokemonList(response.data.results);
+        }
+    };
+
+    buscarListaPokemon();
+  }, []);
+
+  const buscarDetallesPokemon = async (url) => {
+      const response = await axios.get(url);
+      if (response) {
+        setSelectedPokemon(response.data);
+      }
+  };
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    <div>
+      <h1>Pokémon List</h1>
+
+      <ul>
+        {pokemonList.map((poke) => (
+          <li key={poke.name}>
+            <button onClick={() => buscarDetallesPokemon(poke.url)}>
+              {poke.name}
+            </button>
+          </li>
+        ))}
+      </ul>
+
+      {selectedPokemon && (
+        <div>
+          <h2>{selectedPokemon.name.toUpperCase()}</h2>
+          <img src={selectedPokemon.sprites.front_default} alt={selectedPokemon.name}/>
+          <p><strong>Altura:</strong> {selectedPokemon.height}</p>
+          <p><strong>Peso:</strong> {selectedPokemon.weight}</p>
+          <p><strong>Tipos:</strong> {selectedPokemon.types.map(t => t.type.name).join(', ')}</p>
+        </div>
+      )}
+    </div>
+  );
 }
 
-export default App
+export default App;
